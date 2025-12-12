@@ -11,7 +11,7 @@ export const useLogin = () => {
     },
     onSuccess: (data) => {
       localStorage.setItem('admin_token', data.token)
-      localStorage.setItem('admin_user', JSON.stringify(data.user))
+      localStorage.setItem('admin_user', JSON.stringify(data.admin || data.user))
       toast.success('Login successful')
     }
   })

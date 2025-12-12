@@ -4,24 +4,21 @@ import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
 import Input from '../components/ui/Input'
 import Button from '../components/ui/Button'
-import { authService } from '../services/authService'
+import { useLogin } from '../api/hooks/useAuth'
 
 export default function Login() {
   const navigate = useNavigate()
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const { register, handleSubmit, formState: { errors } } = useForm()
+  const loginMutation = useLogin()
 
   const onSubmit = async (data) => {
-    setLoading(true)
     setError('')
     try {
-      await authService.login(data.email, data.password)
+      await loginMutation.mutateAsync(data)
       navigate('/')
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed')
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -63,7 +60,7 @@ export default function Login() {
           <Button
             type="submit"
             className="w-full"
-            loading={loading}
+            loading={loginMutation.isPending}
           >
             Login
           </Button>
