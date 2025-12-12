@@ -12,6 +12,21 @@ export const usePayouts = (filters = {}) => {
   })
 }
 
+export const useProcessPayout = () => {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: async (payoutId) => {
+      const response = await payoutService.process(payoutId)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['payouts'])
+      toast.success('Payout processed successfully')
+    }
+  })
+}
+
 export const useReleasePayout = () => {
   const queryClient = useQueryClient()
   

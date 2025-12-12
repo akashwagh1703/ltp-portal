@@ -36,5 +36,5 @@ export const getAuthUser = () => {
 }
 
 export const isAuthenticated = () => {
-  return !!localStorage.getItem('token')
+  return !!localStorage.getItem('admin_token')
 }
