@@ -39,9 +39,9 @@ export default function Sidebar({ isOpen }) {
     <motion.aside
       initial={false}
       animate={{ width: isOpen ? 256 : 80 }}
-      className="bg-white border-r border-gray-200 h-screen sticky top-0 overflow-hidden"
+      className="bg-white border-r border-gray-200 h-screen sticky top-0 flex flex-col"
     >
-      <div className="p-6">
+      <div className="p-6 flex-shrink-0">
         <motion.h1
           animate={{ opacity: isOpen ? 1 : 0 }}
           className="text-xl font-bold text-primary"
@@ -50,7 +50,7 @@ export default function Sidebar({ isOpen }) {
         </motion.h1>
       </div>
       
-      <nav className="px-3 space-y-1">
+      <nav className="px-3 space-y-1 overflow-y-auto flex-1 pb-6">
         {menuItems.map((item) => (
           <NavLink
             key={item.path}
