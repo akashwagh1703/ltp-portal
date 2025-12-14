@@ -121,6 +121,15 @@ export default function Owners() {
       render: (row) => row.turfs_count || 0 
     },
     {
+      key: 'commission_rate',
+      label: 'Commission',
+      render: (row) => (
+        <span className="text-sm font-medium">
+          {row.commission_rate ? `${row.commission_rate}%` : 'Default'}
+        </span>
+      )
+    },
+    {
       key: 'subscription',
       label: 'Subscription',
       render: (row) => {

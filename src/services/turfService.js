@@ -49,4 +49,9 @@ export const turfService = {
     const response = await api.post(`/admin/turfs/${id}/activate`);
     return response.data;
   },
+
+  toggleFeatured: async (id) => {
+    const response = await api.post(`/admin/turfs/${id}/toggle-featured`);
+    return response.data;
+  },
 };

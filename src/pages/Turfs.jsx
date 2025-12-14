@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CheckCircle, XCircle, Ban, Play, Plus, Edit, Trash2, Image } from 'lucide-react'
+import { CheckCircle, XCircle, Ban, Play, Plus, Edit, Trash2, Image, Star } from 'lucide-react'
 import DataTable from '../components/table/DataTable'
 import Button from '../components/ui/Button'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import Modal from '../components/ui/Modal'
 import TurfForm from '../components/forms/TurfForm'
-import { useTurfs, useApproveTurf, useRejectTurf, useSuspendTurf, useActivateTurf, useDeleteTurf } from '../api/hooks/useTurfs'
+import { useTurfs, useApproveTurf, useRejectTurf, useSuspendTurf, useActivateTurf, useDeleteTurf, useToggleFeatured } from '../api/hooks/useTurfs'
 import { formatCurrency, formatDateTime, formatSportType } from '../utils/formatters'
 import { STATUS_COLORS } from '../utils/constants'
 import toast from 'react-hot-toast'
@@ -22,6 +22,7 @@ export default function Turfs() {
   const suspendMutation = useSuspendTurf()
   const activateMutation = useActivateTurf()
   const deleteMutation = useDeleteTurf()
+  const toggleFeaturedMutation = useToggleFeatured()
 
   const handleAction = (type, turf) => {
     setActionDialog({ isOpen: true, type, turf })
@@ -101,9 +102,16 @@ export default function Turfs() {
       key: 'status',
       label: 'Status',
       render: (row) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[row.status]}`}>
-          {row.status}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[row.status]}`}>
+            {row.status}
+          </span>
+          {row.is_featured && (
+            <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 flex items-center gap-1">
+              <Star className="h-3 w-3" /> Featured
+            </span>
+          )}
+        </div>
       )
     },
     {
@@ -141,6 +149,14 @@ export default function Turfs() {
           </Button>
           <Button size="sm" variant="outline" onClick={() => navigate(`/turfs/${row.id}/images`)} title="Images">
             <Image className="h-4 w-4" />
+          </Button>
+          <Button 
+            size="sm" 
+            variant={row.is_featured ? "warning" : "outline"}
+            onClick={() => toggleFeaturedMutation.mutate(row.id)} 
+            title={row.is_featured ? "Remove Featured" : "Mark as Featured"}
+          >
+            <Star className="h-4 w-4" />
           </Button>
           <Button size="sm" variant="outline" onClick={() => setSelectedTurf(row)} title="View Details">
             View

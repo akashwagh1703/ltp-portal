@@ -7,7 +7,8 @@ export const usePlayers = (filters = {}) => {
     queryKey: ['players', filters],
     queryFn: async () => {
       const response = await playerService.getAll(filters)
-      return response.data
+      // Handle paginated response
+      return response.data?.data || response.data || []
     }
   })
 }
@@ -27,8 +28,8 @@ export const useUpdatePlayerStatus = () => {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: async ({ id, status }) => {
-      const response = await playerService.updateStatus(id, status)
+    mutationFn: async ({ playerId, status }) => {
+      const response = await playerService.updateStatus(playerId, status)
       return response.data
     },
     onSuccess: () => {

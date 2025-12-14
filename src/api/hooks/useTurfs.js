@@ -89,3 +89,21 @@ export const useDeleteTurf = () => {
     }
   })
 }
+
+export const useToggleFeatured = () => {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: async (turfId) => {
+      const response = await turfService.toggleFeatured(turfId)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['turfs'])
+      toast.success('Featured status updated')
+    },
+    onError: () => {
+      toast.error('Failed to update featured status')
+    }
+  })
+}

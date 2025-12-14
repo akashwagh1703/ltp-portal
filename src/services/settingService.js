@@ -6,13 +6,23 @@ export const settingService = {
     return response.data;
   },
 
-  update: async (key, data) => {
-    const response = await api.put(`/admin/settings/${key}`, data);
+  update: async (settings) => {
+    const response = await api.post('/admin/settings', { settings });
     return response.data;
   },
 
-  updateBulk: async (settings) => {
-    const response = await api.post('/admin/settings', { settings });
+  updateSingle: async (key, value) => {
+    const response = await api.put(`/admin/settings/${key}`, { value });
+    return response.data;
+  },
+
+  getCommissionRate: async () => {
+    const response = await api.get('/admin/settings/commission/rate');
+    return response.data;
+  },
+
+  updateCommissionRate: async (rate) => {
+    const response = await api.put('/admin/settings/commission/rate', { rate });
     return response.data;
   },
 };

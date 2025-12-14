@@ -61,21 +61,21 @@ export default function Payouts() {
       sortable: true
     },
     { 
-      key: 'total_revenue', 
+      key: 'total_amount', 
       label: 'Revenue',
       sortable: true,
-      render: (row) => formatCurrency(row.total_revenue)
+      render: (row) => formatCurrency(row.total_amount || row.total_revenue)
     },
     { 
       key: 'commission_amount', 
-      label: 'Commission',
+      label: 'Commission (5%)',
       render: (row) => formatCurrency(row.commission_amount)
     },
     { 
-      key: 'payout_amount', 
+      key: 'settlement_amount', 
       label: 'Payout',
       sortable: true,
-      render: (row) => formatCurrency(row.payout_amount)
+      render: (row) => formatCurrency(row.settlement_amount || row.payout_amount)
     },
     {
       key: 'status',
@@ -128,19 +128,19 @@ export default function Payouts() {
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <p className="text-sm text-gray-600 mb-1">Pending</p>
           <h3 className="text-2xl font-bold text-yellow-600">
-            {formatCurrency(payouts.filter(p => p.status === 'pending').reduce((sum, p) => sum + parseFloat(p.payout_amount || 0), 0))}
+            {formatCurrency(payouts.filter(p => p.status === 'pending').reduce((sum, p) => sum + parseFloat(p.settlement_amount || p.payout_amount || 0), 0))}
           </h3>
         </div>
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <p className="text-sm text-gray-600 mb-1">Processed</p>
+          <p className="text-sm text-gray-600 mb-1">Processing</p>
           <h3 className="text-2xl font-bold text-blue-600">
-            {formatCurrency(payouts.filter(p => p.status === 'processed').reduce((sum, p) => sum + parseFloat(p.payout_amount || 0), 0))}
+            {formatCurrency(payouts.filter(p => p.status === 'processing').reduce((sum, p) => sum + parseFloat(p.settlement_amount || p.payout_amount || 0), 0))}
           </h3>
         </div>
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <p className="text-sm text-gray-600 mb-1">Paid</p>
           <h3 className="text-2xl font-bold text-green-600">
-            {formatCurrency(payouts.filter(p => p.status === 'paid').reduce((sum, p) => sum + parseFloat(p.payout_amount || 0), 0))}
+            {formatCurrency(payouts.filter(p => p.status === 'paid').reduce((sum, p) => sum + parseFloat(p.settlement_amount || p.payout_amount || 0), 0))}
           </h3>
         </div>
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
@@ -158,7 +158,7 @@ export default function Payouts() {
         onClose={() => setProcessDialog({ isOpen: false, payout: null })}
         onConfirm={confirmProcess}
         title="Process Payout"
-        message={`Process payout of ${processDialog.payout ? formatCurrency(processDialog.payout.payout_amount) : ''} for ${processDialog.payout?.owner?.name}?`}
+        message={`Process payout of ${processDialog.payout ? formatCurrency(processDialog.payout.settlement_amount || processDialog.payout.payout_amount) : ''} for ${processDialog.payout?.owner?.name}?`}
         variant="primary"
         confirmText="Process"
       />
@@ -168,7 +168,7 @@ export default function Payouts() {
         onClose={() => setReleaseDialog({ isOpen: false, payout: null })}
         onConfirm={confirmRelease}
         title="Release Payout"
-        message={`Release payout of ${releaseDialog.payout ? formatCurrency(releaseDialog.payout.payout_amount) : ''} to ${releaseDialog.payout?.owner?.name}?`}
+        message={`Release payout of ${releaseDialog.payout ? formatCurrency(releaseDialog.payout.settlement_amount || releaseDialog.payout.payout_amount) : ''} to ${releaseDialog.payout?.owner?.name}?`}
         variant="success"
         confirmText="Release"
       />
@@ -184,9 +184,9 @@ export default function Payouts() {
               <div><p className="text-sm text-gray-600">Period Start</p><p className="font-medium">{formatDate(selectedPayout.period_start)}</p></div>
               <div><p className="text-sm text-gray-600">Period End</p><p className="font-medium">{formatDate(selectedPayout.period_end)}</p></div>
               <div><p className="text-sm text-gray-600">Total Bookings</p><p className="font-medium">{selectedPayout.total_bookings}</p></div>
-              <div><p className="text-sm text-gray-600">Total Revenue</p><p className="font-medium">{formatCurrency(selectedPayout.total_revenue)}</p></div>
-              <div><p className="text-sm text-gray-600">Commission</p><p className="font-medium">{formatCurrency(selectedPayout.commission_amount)}</p></div>
-              <div><p className="text-sm text-gray-600">Payout Amount</p><p className="font-medium text-green-600 text-lg">{formatCurrency(selectedPayout.payout_amount)}</p></div>
+              <div><p className="text-sm text-gray-600">Total Revenue</p><p className="font-medium">{formatCurrency(selectedPayout.total_amount || selectedPayout.total_revenue)}</p></div>
+              <div><p className="text-sm text-gray-600">Commission (5%)</p><p className="font-medium text-red-600">{formatCurrency(selectedPayout.commission_amount)}</p></div>
+              <div><p className="text-sm text-gray-600">Settlement Amount</p><p className="font-medium text-green-600 text-lg">{formatCurrency(selectedPayout.settlement_amount || selectedPayout.payout_amount)}</p></div>
               {selectedPayout.processed_at && <div><p className="text-sm text-gray-600">Processed At</p><p className="font-medium">{formatDateTime(selectedPayout.processed_at)}</p></div>}
               {selectedPayout.paid_at && <div><p className="text-sm text-gray-600">Paid At</p><p className="font-medium">{formatDateTime(selectedPayout.paid_at)}</p></div>}
             </div>

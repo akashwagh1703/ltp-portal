@@ -55,10 +55,17 @@ export default function TurfImages() {
     const formData = new FormData()
     
     // Append files with simple array notation
-    validFiles.forEach(file => {
-      formData.append('images[]', file)
+    validFiles.forEach((file, index) => {
+      console.log(`Adding file ${index}:`, file.name, file.size, file.type)
+      formData.append('images[]', file, file.name)
     })
 
+    // Log FormData contents
+    console.log('📤 FormData entries:')
+    for (let pair of formData.entries()) {
+      console.log(pair[0], pair[1])
+    }
+    
     console.log('📤 Uploading files:', validFiles.map(f => ({ name: f.name, size: f.size, type: f.type })))
 
     try {

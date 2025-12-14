@@ -14,7 +14,8 @@ const createOwnerSchema = z.object({
   bank_name: z.string().optional(),
   account_number: z.string().regex(/^\d{9,18}$/, 'Account number must be 9-18 digits').optional().or(z.literal('')),
   ifsc_code: z.string().regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, 'Invalid IFSC code').optional().or(z.literal('')),
-  account_holder_name: z.string().optional()
+  account_holder_name: z.string().optional(),
+  commission_rate: z.string().optional().transform(val => val === '' ? null : parseFloat(val))
 })
 
 const editOwnerSchema = z.object({
@@ -26,7 +27,8 @@ const editOwnerSchema = z.object({
   bank_name: z.string().optional(),
   account_number: z.string().regex(/^\d{9,18}$/, 'Account number must be 9-18 digits').optional().or(z.literal('')),
   ifsc_code: z.string().regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, 'Invalid IFSC code').optional().or(z.literal('')),
-  account_holder_name: z.string().optional()
+  account_holder_name: z.string().optional(),
+  commission_rate: z.string().optional().transform(val => val === '' ? null : parseFloat(val))
 })
 
 export default function OwnerForm({ initialData, onSubmit, loading }) {
@@ -123,6 +125,22 @@ export default function OwnerForm({ initialData, onSubmit, loading }) {
         placeholder="HDFC0001234"
         error={errors.ifsc_code?.message}
         {...register('ifsc_code')}
+      />
+
+      <div className="bg-yellow-50 p-3 rounded-lg mb-4 mt-6">
+        <h4 className="font-semibold text-sm text-gray-900 mb-1">Commission Settings</h4>
+        <p className="text-xs text-gray-600 mt-1">Leave empty to use platform default (5%)</p>
+      </div>
+
+      <Input
+        label="Custom Commission Rate (%)"
+        type="number"
+        step="0.01"
+        min="0"
+        max="100"
+        placeholder="e.g., 3 for 3%, 7 for 7%"
+        error={errors.commission_rate?.message}
+        {...register('commission_rate')}
       />
 
       {!initialData && (

@@ -1,116 +1,114 @@
 import { useState, useEffect } from 'react'
-import Input from '../components/ui/Input'
+import { Save } from 'lucide-react'
 import Button from '../components/ui/Button'
-import Select from '../components/ui/Select'
+import Input from '../components/ui/Input'
+import { settingService } from '../services/settingService'
 import toast from 'react-hot-toast'
-import { useSettings, useUpdateSetting } from '../api/hooks/useSettings'
 
 export default function Settings() {
-  const { data: settings = {}, isLoading } = useSettings()
-  const updateMutation = useUpdateSetting()
-  
-  const [commission, setCommission] = useState('10')
-  const [gatewayStatus, setGatewayStatus] = useState('active')
-  
+  const [commissionRate, setCommissionRate] = useState('5.00')
+  const [loading, setLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
+
   useEffect(() => {
-    if (settings.commission_percentage) {
-      setCommission(settings.commission_percentage)
+    loadSettings()
+  }, [])
+
+  const loadSettings = async () => {
+    setLoading(true)
+    try {
+      const response = await settingService.getCommissionRate()
+      setCommissionRate(response.commission_rate || '5.00')
+    } catch (error) {
+      console.error('Load settings error:', error)
+      toast.error('Failed to load settings')
+    } finally {
+      setLoading(false)
     }
-    if (settings.payment_gateway_status) {
-      setGatewayStatus(settings.payment_gateway_status)
+  }
+
+  const handleSave = async () => {
+    if (!commissionRate || parseFloat(commissionRate) < 0 || parseFloat(commissionRate) > 100) {
+      toast.error('Commission rate must be between 0 and 100')
+      return
     }
-  }, [settings])
+
+    setSaving(true)
+    try {
+      await settingService.updateCommissionRate(parseFloat(commissionRate))
+      toast.success('Commission rate updated successfully')
+    } catch (error) {
+      console.error('Save settings error:', error)
+      toast.error(error.response?.data?.message || 'Failed to update settings')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-600 mt-1">Manage platform settings and configuration</p>
+        <h1 className="text-3xl font-bold text-gray-900">Platform Settings</h1>
+        <p className="text-gray-600 mt-1">Configure platform-wide settings</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">General Settings</h3>
-          <div className="space-y-4 max-w-2xl">
-            <Input label="Platform Name" defaultValue="Let's Turf Play" />
-            <Input label="Support Email" type="email" defaultValue="support@letsturf.com" />
-            <Input label="Support Phone" type="text" defaultValue="9876543210" />
-            <Input label="App Version" defaultValue="1.0.0" disabled />
-            <Button onClick={() => toast.success('Settings saved')} disabled={isLoading}>Save Changes</Button>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Commission Settings</h3>
-          <div className="space-y-4 max-w-2xl">
-            <Input 
-              label="Default Commission (%)" 
-              type="text" 
-              value={commission}
-              onChange={(e) => setCommission(e.target.value)}
-              placeholder="10"
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">Commission Settings</h2>
+        
+        <div className="max-w-md space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Platform Commission Rate (%)
+            </label>
+            <Input
+              type="number"
+              step="0.01"
+              min="0"
+              max="100"
+              value={commissionRate}
+              onChange={(e) => setCommissionRate(e.target.value)}
+              placeholder="5.00"
             />
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-700">
-                Current commission: <span className="font-semibold">{commission}%</span>
-              </p>
-              <p className="text-xs text-gray-600 mt-1">
-                This will be applied to all new payouts
-              </p>
-            </div>
-            <Button 
-              onClick={() => updateMutation.mutate({ key: 'commission_percentage', value: commission })}
-              disabled={updateMutation.isPending}
-            >
-              Update Commission
-            </Button>
+            <p className="text-sm text-gray-500 mt-2">
+              Percentage of booking amount charged as platform commission
+            </p>
           </div>
-        </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Gateway</h3>
-          <div className="space-y-4 max-w-2xl">
-            <Select
-              label="Gateway Status"
-              value={gatewayStatus}
-              onChange={setGatewayStatus}
-              options={[
-                { value: 'active', label: 'Active' },
-                { value: 'inactive', label: 'Inactive' },
-                { value: 'test', label: 'Test Mode' }
-              ]}
-            />
-            <Input label="API Key" type="password" defaultValue="sk_test_xxxxxxxxxxxxx" />
-            <Input label="Secret Key" type="password" defaultValue="sk_secret_xxxxxxxxxxxxx" />
-            <div className="flex items-center gap-4">
-              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                gatewayStatus === 'active' ? 'bg-green-100 text-green-800' : 
-                gatewayStatus === 'test' ? 'bg-yellow-100 text-yellow-800' : 
-                'bg-red-100 text-red-800'
-              }`}>
-                {gatewayStatus === 'active' ? '● Live' : gatewayStatus === 'test' ? '● Test Mode' : '● Inactive'}
-              </div>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h3 className="text-sm font-medium text-blue-900 mb-2">Example Calculation:</h3>
+            <div className="text-sm text-blue-800 space-y-1">
+              <p>Booking Amount: ₹1,000</p>
+              <p>Commission ({commissionRate}%): ₹{((1000 * parseFloat(commissionRate || 0)) / 100).toFixed(2)}</p>
+              <p>Owner Receives: ₹{(1000 - ((1000 * parseFloat(commissionRate || 0)) / 100)).toFixed(2)}</p>
             </div>
-            <Button 
-              onClick={() => updateMutation.mutate({ key: 'payment_gateway_status', value: gatewayStatus })}
-              disabled={updateMutation.isPending}
-            >
-              Save Gateway Settings
-            </Button>
           </div>
-        </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Admin Profile</h3>
-          <div className="space-y-4 max-w-2xl">
-            <Input label="Name" defaultValue="Admin User" />
-            <Input label="Email" type="email" defaultValue="admin@ltp.com" />
-            <Input label="Current Password" type="password" placeholder="Enter current password" />
-            <Input label="New Password" type="password" placeholder="Enter new password" />
-            <Input label="Confirm Password" type="password" placeholder="Confirm new password" />
-            <Button onClick={() => toast.success('Profile updated')}>Update Profile</Button>
-          </div>
+          <Button
+            onClick={handleSave}
+            loading={saving}
+            icon={<Save className="h-4 w-4" />}
+          >
+            Save Settings
+          </Button>
         </div>
+      </div>
+
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <h3 className="text-sm font-medium text-yellow-900 mb-2">⚠️ Important Notes:</h3>
+        <ul className="text-sm text-yellow-800 space-y-1 list-disc list-inside">
+          <li>Commission rate applies to all new bookings</li>
+          <li>Existing bookings retain their original commission rate</li>
+          <li>Changes take effect immediately</li>
+          <li>Recommended rate: 5-10% for marketplace platforms</li>
+        </ul>
       </div>
     </div>
   )
