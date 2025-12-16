@@ -3,7 +3,7 @@ import api from './api';
 export const payoutService = {
   getAll: async (params = {}) => {
     const response = await api.get('/admin/payouts', { params });
-    return response.data;
+    return response.data.data ? response.data : { data: response.data };
   },
 
   generate: async (data) => {

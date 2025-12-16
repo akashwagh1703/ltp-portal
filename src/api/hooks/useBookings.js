@@ -17,7 +17,7 @@ export const useCancelBooking = () => {
   
   return useMutation({
     mutationFn: async ({ bookingId, reason }) => {
-      const response = await bookingService.cancel(bookingId, { reason })
+      const response = await bookingService.cancel(bookingId, reason)
       return response.data
     },
     onSuccess: () => {

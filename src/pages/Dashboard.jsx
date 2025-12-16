@@ -42,8 +42,8 @@ export default function Dashboard() {
       key: 'status',
       label: 'Status',
       render: (row) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[row.status]}`}>
-          {row.status}
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[row.status || row.booking_status]}`}>
+          {row.status || row.booking_status}
         </span>
       )
     },
