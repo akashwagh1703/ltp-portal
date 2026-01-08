@@ -151,7 +151,7 @@ export default function TurfImages() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {images.map((img) => {
               const imagePath = img.image_path ? encodeURI(img.image_path) : ''
-              const imageUrl = img.image_url || `http://35.222.74.225/storage/${imagePath}`
+              const imageUrl = img.image_url || `http://143.110.183.5/storage/${imagePath}`
               console.log('Image URL:', imageUrl, 'Image object:', img)
               return (
               <div key={img.id} className="relative group">

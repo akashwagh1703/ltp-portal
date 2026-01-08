@@ -2,7 +2,7 @@ import axios from 'axios'
 import toast from 'react-hot-toast'
 
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://35.222.74.225/api/v1',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://143.110.183.5/api/v1',
   headers: {
     'Content-Type': 'application/json'
   }
@@ -25,7 +25,7 @@ client.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('admin_token')
       localStorage.removeItem('admin_user')
-      window.location.href = '/login'
+      window.location.href = '/ltp-admin-frontend/login'
       toast.error('Session expired. Please login again.')
     } else if (error.response?.data?.message) {
       toast.error(error.response.data.message)
