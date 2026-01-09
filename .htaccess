@@ -1,12 +1,12 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteBase /ltp/ltp-admin-frontend/
+  RewriteBase /admin/
   
   # Handle React Router - redirect all requests to index.html
   RewriteRule ^index\.html$ - [L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule . /ltp/ltp-admin-frontend/index.html [L]
+  RewriteRule . /admin/index.html [L]
 </IfModule>
 
 # Disable directory listing
