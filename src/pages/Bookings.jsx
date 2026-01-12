@@ -64,7 +64,16 @@ export default function Bookings() {
       key: 'amount', 
       label: 'Amount',
       sortable: true,
-      render: (row) => formatCurrency(row.amount)
+      render: (row) => (
+        <div>
+          <div className="font-medium">{formatCurrency(row.final_amount || row.amount)}</div>
+          {row.payment_status === 'partial' && (
+            <div className="text-xs text-gray-500">
+              Paid: {formatCurrency(row.paid_amount || 0)} | Pending: {formatCurrency(row.pending_amount || 0)}
+            </div>
+          )}
+        </div>
+      )
     },
     { 
       key: 'booking_type', 
@@ -97,6 +106,7 @@ export default function Bookings() {
       render: (row) => (
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
           row.payment_status === 'success' ? 'bg-green-100 text-green-800' :
+          row.payment_status === 'partial' ? 'bg-orange-100 text-orange-800' :
           row.payment_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
           row.payment_status === 'failed' ? 'bg-red-100 text-red-800' :
           'bg-gray-100 text-gray-800'
@@ -232,8 +242,26 @@ export default function Bookings() {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Amount</p>
-                <p className="font-medium">{formatCurrency(selectedBooking.amount)}</p>
+                <p className="font-medium">{formatCurrency(selectedBooking.final_amount || selectedBooking.amount)}</p>
               </div>
+              {selectedBooking.payment_status === 'partial' && (
+                <>
+                  <div>
+                    <p className="text-sm text-gray-600">Paid Amount</p>
+                    <p className="font-medium text-green-600">{formatCurrency(selectedBooking.paid_amount || 0)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Pending Amount</p>
+                    <p className="font-medium text-orange-600">{formatCurrency(selectedBooking.pending_amount || 0)}</p>
+                  </div>
+                  {selectedBooking.advance_percentage && (
+                    <div>
+                      <p className="text-sm text-gray-600">Advance %</p>
+                      <p className="font-medium">{parseFloat(selectedBooking.advance_percentage).toFixed(0)}%</p>
+                    </div>
+                  )}
+                </>
+              )}
               <div>
                 <p className="text-sm text-gray-600">Booking Type</p>
                 <p className="font-medium capitalize">{selectedBooking.booking_type}</p>
@@ -242,6 +270,7 @@ export default function Bookings() {
                 <p className="text-sm text-gray-600">Payment Status</p>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                   selectedBooking.payment_status === 'success' ? 'bg-green-100 text-green-800' :
+                  selectedBooking.payment_status === 'partial' ? 'bg-orange-100 text-orange-800' :
                   selectedBooking.payment_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                   selectedBooking.payment_status === 'failed' ? 'bg-red-100 text-red-800' :
                   'bg-gray-100 text-gray-800'
