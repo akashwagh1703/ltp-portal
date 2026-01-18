@@ -21,7 +21,7 @@ const OwnerApplications = () => {
       const params = {};
       if (statusFilter) params.status = statusFilter;
       
-      const response = await api.get('/owner-applications', { params });
+      const response = await api.get('/admin/owner-applications', { params });
       const applications = response.data.data || response.data || [];
       setApplications(applications);
     } catch (error) {
@@ -36,7 +36,7 @@ const OwnerApplications = () => {
   const updateStatus = async (id, status, notes = '') => {
     try {
       setUpdating(true);
-      const response = await api.put(`/owner-applications/${id}/status`, { status, notes });
+      const response = await api.put(`/admin/owner-applications/${id}/status`, { status, notes });
       
       if (response.data) {
         await fetchApplications();
