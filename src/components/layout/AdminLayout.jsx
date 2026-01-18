@@ -14,7 +14,7 @@ export default function AdminLayout() {
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
           isSidebarOpen={isSidebarOpen}
         />
-        <main className="flex-1 overflow-y-auto bg-bg p-6">
+        <main className="flex-1 overflow-y-auto bg-bg p-6 scrollbar-thin">
           <Outlet />
         </main>
       </div>

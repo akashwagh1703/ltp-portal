@@ -11,6 +11,7 @@ import Payouts from './pages/Payouts'
 import TurfUpdateRequests from './pages/TurfUpdateRequests'
 import TurfImages from './pages/TurfImages'
 import Reports from './pages/Reports'
+import OwnerApplications from './pages/OwnerApplications'
 import CMS from './pages/CMS'
 import Settings from './pages/Settings'
 import Logs from './pages/Logs'
@@ -43,6 +44,7 @@ export const routes = [
       { path: 'turfs/edit/:id', element: <AddTurf /> },
       { path: 'turfs/:id/images', element: <TurfImages /> },
       { path: 'owners', element: <Owners /> },
+      { path: 'owner-applications', element: <OwnerApplications /> },
       { path: 'players', element: <Players /> },
       { path: 'bookings', element: <Bookings /> },
       { path: 'payouts', element: <Payouts /> },
