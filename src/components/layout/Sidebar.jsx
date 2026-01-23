@@ -53,7 +53,8 @@ const menuItems = [
     icon: Tag,
     submenu: [
       { path: '/coupons', label: 'Coupons' },
-      { path: '/reviews', label: 'Reviews' }
+      { path: '/reviews', label: 'Reviews' },
+      { path: '/notifications', label: 'Send Notifications' }
     ]
   },
   { path: '/subscriptions', icon: CreditCard, label: 'Subscriptions' },

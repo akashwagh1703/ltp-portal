@@ -20,6 +20,7 @@ import SubscriptionSettings from './pages/SubscriptionSettings'
 import Players from './pages/Players'
 import Coupons from './pages/Coupons'
 import Reviews from './pages/Reviews'
+import SendNotification from './pages/SendNotification'
 
 const PrivateRoute = ({ children }) => {
   return isAuthenticated() ? children : <Navigate to="/login" replace />
@@ -50,13 +51,15 @@ export const routes = [
       { path: 'payouts', element: <Payouts /> },
       { path: 'coupons', element: <Coupons /> },
       { path: 'reviews', element: <Reviews /> },
+      { path: 'send-notification', element: <SendNotification /> },
       { path: 'turf-update-requests', element: <TurfUpdateRequests /> },
       { path: 'reports', element: <Reports /> },
       { path: 'cms', element: <CMS /> },
       { path: 'subscriptions', element: <Subscriptions /> },
       { path: 'subscriptions/settings', element: <SubscriptionSettings /> },
       { path: 'settings', element: <Settings /> },
-      { path: 'logs', element: <Logs /> }
+      { path: 'logs', element: <Logs /> },
+      { path: 'notifications', element: <SendNotification /> }
     ]
   }
 ]

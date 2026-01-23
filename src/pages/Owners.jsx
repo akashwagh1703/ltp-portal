@@ -170,39 +170,35 @@ export default function Owners() {
               setSelectedOwner(row)
               setShowEditModal(true)
             }}
+            icon={<Edit className="h-4 w-4" />}
             title="Edit"
-          >
-            <Edit className="h-4 w-4" />
-          </Button>
+          />
           
           {row.status === 'active' ? (
             <Button 
               size="sm" 
               variant="warning" 
               onClick={() => setStatusDialog({ isOpen: true, owner: row, status: 'suspended' })}
+              icon={<Ban className="h-4 w-4" />}
               title="Suspend"
-            >
-              <Ban className="h-4 w-4" />
-            </Button>
+            />
           ) : row.status === 'suspended' ? (
             <Button 
               size="sm" 
               variant="success" 
               onClick={() => setStatusDialog({ isOpen: true, owner: row, status: 'active' })}
+              icon={<Play className="h-4 w-4" />}
               title="Activate"
-            >
-              <Play className="h-4 w-4" />
-            </Button>
+            />
           ) : null}
           
           <Button 
             size="sm" 
             variant="danger" 
             onClick={() => setDeleteDialog({ isOpen: true, owner: row })}
+            icon={<Trash2 className="h-4 w-4" />}
             title="Delete"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          />
         </div>
       )
     }
@@ -215,8 +211,7 @@ export default function Owners() {
           <h1 className="text-3xl font-bold text-gray-900">Owner Management</h1>
           <p className="text-gray-600 mt-1">Manage turf owners and their accounts</p>
         </div>
-        <Button onClick={() => setShowAddModal(true)}>
-          <Plus className="h-4 w-4 mr-2" />
+        <Button onClick={() => setShowAddModal(true)} icon={<Plus className="h-4 w-4" />}>
           Add Owner
         </Button>
       </div>

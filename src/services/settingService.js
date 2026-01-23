@@ -25,4 +25,24 @@ export const settingService = {
     const response = await api.put('/admin/settings/commission/rate', { rate });
     return response.data;
   },
+
+  getSmsSettings: async () => {
+    const response = await api.get('/admin/settings/sms');
+    return response.data;
+  },
+
+  updateSmsSettings: async (settings) => {
+    const response = await api.put('/admin/settings/sms', settings);
+    return response.data;
+  },
+
+  getPaymentSettings: async () => {
+    const response = await api.get('/admin/settings/payment');
+    return response.data;
+  },
+
+  updatePaymentSettings: async (settings) => {
+    const response = await api.put('/admin/settings/payment', settings);
+    return response.data;
+  },
 };

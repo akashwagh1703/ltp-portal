@@ -11,6 +11,11 @@ export const payoutService = {
     return response.data;
   },
 
+  generateBulk: async (data) => {
+    const response = await api.post('/admin/payouts/generate-bulk', data);
+    return response.data;
+  },
+
   process: async (id) => {
     const response = await api.post(`/admin/payouts/${id}/process`);
     return response.data;

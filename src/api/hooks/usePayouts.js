@@ -56,3 +56,21 @@ export const useGeneratePayout = () => {
     }
   })
 }
+
+export const useGenerateBulkPayout = () => {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: async (data) => {
+      const response = await payoutService.generateBulk(data)
+      return response
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(['payouts'])
+      const message = data.errors?.length > 0 
+        ? `${data.message}. ${data.errors.length} failed.`
+        : data.message
+      toast.success(message)
+    }
+  })
+}
