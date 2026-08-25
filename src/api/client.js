@@ -9,7 +9,8 @@ if (!API_BASE_URL) {
 const client = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
   }
 })
 

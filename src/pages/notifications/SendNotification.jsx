@@ -15,10 +15,18 @@ export default function SendNotification() {
     setLoading(true);
     try {
       const endpoint = sendType === 'all' 
-        ? '/notifications/send-to-all'
-        : '/notifications/send-to-user';
+        ? '/admin/notifications/send-to-all'
+        : '/admin/notifications/send-to-user';
       
-      await api.post(endpoint, values);
+      await api.post(endpoint, {
+        title: values.title,
+        message: values.body,
+        user_type: values.user_type,
+        user_id: values.user_id,
+        target: sendType === 'all'
+          ? (values.user_type === 'owner' ? 'owners' : values.user_type === 'player' ? 'players' : 'all')
+          : 'specific',
+      });
       message.success('Notification sent successfully');
       form.resetFields();
     } catch (error) {

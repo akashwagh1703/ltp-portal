@@ -7,7 +7,11 @@ export const notificationService = {
   },
 
   sendToUser: async (userId, data) => {
-    const response = await api.post(`/admin/notifications/send-to-user/${userId}`, data);
+    const response = await api.post('/admin/notifications/send-to-user', {
+      ...data,
+      user_id: userId,
+      message: data.message || data.body,
+    });
     return response.data;
   },
 
