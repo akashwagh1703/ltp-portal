@@ -23,6 +23,9 @@ export const useApproveTurf = () => {
     onSuccess: () => {
       queryClient.invalidateQueries(['turfs'])
       toast.success('Turf approved successfully')
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.error?.message || error.response?.data?.message || 'Cannot approve turf')
     }
   })
 }
@@ -35,9 +38,9 @@ export const useRejectTurf = () => {
       const response = await turfService.reject(turfId, { reason })
       return response.data
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries(['turfs'])
-      toast.success('Turf rejected')
+      toast.success(data?.message || 'Told the owner. They can fix it and submit again.')
     }
   })
 }
@@ -68,6 +71,9 @@ export const useActivateTurf = () => {
     onSuccess: () => {
       queryClient.invalidateQueries(['turfs'])
       toast.success('Turf activated')
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.error?.message || error.response?.data?.message || 'Cannot activate turf')
     }
   })
 }

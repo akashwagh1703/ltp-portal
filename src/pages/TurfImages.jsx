@@ -37,16 +37,16 @@ export default function TurfImages() {
     const files = Array.from(e.target.files)
     if (files.length === 0) return
 
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']
-    const maxSize = 5 * 1024 * 1024 // 5MB
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+    const maxSize = 12 * 1024 * 1024
     
     const validFiles = files.filter(file => {
       if (!validTypes.includes(file.type)) {
-        toast.error(`${file.name}: Only JPG, JPEG, PNG, and GIF images are allowed`)
+        toast.error(`${file.name}: Only JPG, PNG, GIF, or WebP images are allowed`)
         return false
       }
       if (file.size > maxSize) {
-        toast.error(`${file.name}: Image size must not exceed 5MB`)
+        toast.error(`${file.name}: Image must be 12MB or smaller`)
         return false
       }
       return true
@@ -132,7 +132,7 @@ export default function TurfImages() {
             <input
               type="file"
               multiple
-              accept="image/jpeg,image/jpg,image/png,image/gif"
+              accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
               onChange={handleImageUpload}
               className="hidden"
               disabled={uploading}
@@ -150,9 +150,8 @@ export default function TurfImages() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {images.map((img) => {
-              const imagePath = img.image_path ? encodeURI(img.image_path) : ''
-              const imageUrl = img.image_url || `http://143.110.183.5/storage/${imagePath}`
-              console.log('Image URL:', imageUrl, 'Image object:', img)
+              const imageUrl = img.image_url
+              if (!imageUrl) return null
               return (
               <div key={img.id} className="relative group">
                 <img

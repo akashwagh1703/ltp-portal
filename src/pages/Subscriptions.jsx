@@ -4,11 +4,14 @@ import DataTable from '../components/table/DataTable';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import { formatDate, formatCurrency } from '../utils/formatters';
+import toast from 'react-hot-toast';
 
 export default function Subscriptions() {
   const [subscriptions, setSubscriptions] = useState([]);
   const [statistics, setStatistics] = useState({});
+  const [feePayments, setFeePayments] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [feeBusyId, setFeeBusyId] = useState(null);
   const [filter, setFilter] = useState('all');
   const [showRenewModal, setShowRenewModal] = useState(false);
   const [selectedSubscription, setSelectedSubscription] = useState(null);
@@ -16,6 +19,7 @@ export default function Subscriptions() {
   useEffect(() => {
     loadSubscriptions();
     loadStatistics();
+    loadFeePayments();
   }, [filter]);
 
   const loadSubscriptions = async () => {
@@ -37,6 +41,46 @@ export default function Subscriptions() {
       setStatistics(response.data);
     } catch (error) {
       console.error('Error loading statistics:', error);
+    }
+  };
+
+  const loadFeePayments = async () => {
+    try {
+      const response = await subscriptionService.getFeePayments({ status: 'awaiting_admin' });
+      setFeePayments(response.data.data || []);
+    } catch (error) {
+      console.error('Error loading fee payments:', error);
+    }
+  };
+
+  const handleConfirmFee = async (payment) => {
+    setFeeBusyId(payment.id);
+    try {
+      const response = await subscriptionService.confirmFee(payment.id);
+      toast.success(response.data.message || 'Fee confirmed. Plan dates updated.');
+      loadFeePayments();
+      loadSubscriptions();
+      loadStatistics();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Could not confirm fee');
+    } finally {
+      setFeeBusyId(null);
+    }
+  };
+
+  const handleRejectFee = async (payment) => {
+    if (!window.confirm(`Didn’t receive ₹${Number(payment.amount).toFixed(0)} from ${payment.owner?.name || 'this owner'}?`)) {
+      return;
+    }
+    setFeeBusyId(payment.id);
+    try {
+      await subscriptionService.rejectFee(payment.id);
+      toast.success('Told the owner the fee was not received.');
+      loadFeePayments();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Could not reject fee');
+    } finally {
+      setFeeBusyId(null);
     }
   };
 
@@ -128,8 +172,59 @@ export default function Subscriptions() {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Subscription Management</h1>
-        <p className="text-gray-600">Manage turf owner subscriptions</p>
+        <h1 className="text-2xl font-bold text-gray-900">Subscriptions</h1>
+        <p className="text-gray-600">Confirm Pay LTP fees, then review owner plans</p>
+      </div>
+
+      <div className="bg-white rounded-lg shadow mb-6 p-4">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Pay LTP inbox</h2>
+          {feePayments.length > 0 && (
+            <span className="bg-orange-100 text-orange-800 text-xs font-medium px-2 py-1 rounded-full">
+              {feePayments.length} waiting
+            </span>
+          )}
+        </div>
+        {feePayments.length === 0 ? (
+          <p className="text-sm text-gray-500">No fee payments waiting. Owners tap “I have paid” after scanning the LTP QR.</p>
+        ) : (
+          <div className="space-y-3">
+            {feePayments.map((payment) => (
+              <div
+                key={payment.id}
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-lg border border-gray-200 bg-gray-50"
+              >
+                <div>
+                  <p className="font-medium text-gray-900">
+                    {payment.owner?.name || 'Owner'} · {formatCurrency(payment.amount)} · {payment.plan?.name || 'Plan'}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {payment.owner?.phone || ''}
+                    {payment.marked_paid_at ? ` · marked paid ${formatDate(payment.marked_paid_at)}` : ''}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="success"
+                    disabled={feeBusyId === payment.id}
+                    onClick={() => handleConfirmFee(payment)}
+                  >
+                    Confirm payment
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={feeBusyId === payment.id}
+                    onClick={() => handleRejectFee(payment)}
+                  >
+                    Didn’t receive
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Statistics Cards */}
@@ -160,7 +255,7 @@ export default function Subscriptions() {
             onClick={() => setFilter(status)}
             className={`px-4 py-2 rounded-lg font-medium ${
               filter === status
-                ? 'bg-blue-600 text-white'
+                ? 'bg-primary text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >

@@ -8,7 +8,7 @@ import Modal from '../components/ui/Modal'
 import TurfForm from '../components/forms/TurfForm'
 import { useTurfs, useApproveTurf, useRejectTurf, useSuspendTurf, useActivateTurf, useDeleteTurf, useToggleFeatured } from '../api/hooks/useTurfs'
 import { formatCurrency, formatDateTime, formatSportType } from '../utils/formatters'
-import { STATUS_COLORS } from '../utils/constants'
+import { STATUS_COLORS, TURF_STATUS_LABEL } from '../utils/constants'
 import toast from 'react-hot-toast'
 
 export default function Turfs() {
@@ -25,6 +25,18 @@ export default function Turfs() {
   const toggleFeaturedMutation = useToggleFeatured()
 
   const handleAction = (type, turf) => {
+    const hasUpi = turf.owner_has_upi || turf.owner?.has_upi
+    if ((type === 'approve' || type === 'activate') && !hasUpi) {
+      toast.error('Owner must add a UPI ID and QR before this turf can go live.')
+      return
+    }
+    if (type === 'reject') {
+      const reason = window.prompt('Tell the owner what to fix (one reason)', 'Please complete missing details')
+      if (reason) {
+        rejectMutation.mutate({ turfId: turf.id, reason })
+      }
+      return
+    }
     setActionDialog({ isOpen: true, type, turf })
   }
 
@@ -35,9 +47,6 @@ export default function Turfs() {
     switch(type) {
       case 'approve':
         approveMutation.mutate(turfId)
-        break
-      case 'reject':
-        rejectMutation.mutate({ turfId, reason: 'Does not meet requirements' })
         break
       case 'suspend':
         suspendMutation.mutate({ turfId, reason: 'Policy violation' })
@@ -71,7 +80,16 @@ export default function Turfs() {
       key: 'owner', 
       label: 'Owner',
       sortable: true,
-      render: (row) => row.owner?.name || 'N/A'
+      render: (row) => (
+        <div>
+          <p className="font-medium">{row.owner?.name || 'N/A'}</p>
+          {row.owner_has_upi || row.owner?.has_upi ? (
+            <span className="text-xs font-medium text-green-700">UPI ready</span>
+          ) : (
+            <span className="text-xs font-medium text-orange-700">No UPI</span>
+          )}
+        </div>
+      )
     },
     { 
       key: 'pricing', 
@@ -104,7 +122,7 @@ export default function Turfs() {
       render: (row) => (
         <div className="flex items-center gap-2">
           <span className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[row.status]}`}>
-            {row.status}
+            {TURF_STATUS_LABEL[row.status] || row.status}
           </span>
           {row.is_featured && (
             <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 flex items-center gap-1">
@@ -126,7 +144,13 @@ export default function Turfs() {
         <div className="flex gap-1">
           {row.status === 'pending' && (
             <>
-              <Button size="sm" variant="success" onClick={() => handleAction('approve', row)} title="Approve">
+              <Button
+                size="sm"
+                variant="success"
+                onClick={() => handleAction('approve', row)}
+                title={row.owner_has_upi || row.owner?.has_upi ? 'Approve' : 'Owner must add UPI first'}
+                disabled={!(row.owner_has_upi || row.owner?.has_upi)}
+              >
                 <CheckCircle className="h-4 w-4" />
               </Button>
               <Button size="sm" variant="danger" onClick={() => handleAction('reject', row)} title="Reject">
@@ -140,7 +164,13 @@ export default function Turfs() {
             </Button>
           )}
           {row.status === 'suspended' && (
-            <Button size="sm" variant="success" onClick={() => handleAction('activate', row)} title="Activate">
+            <Button
+              size="sm"
+              variant="success"
+              onClick={() => handleAction('activate', row)}
+              title={row.owner_has_upi || row.owner?.has_upi ? 'Activate' : 'Owner must add UPI first'}
+              disabled={!(row.owner_has_upi || row.owner?.has_upi)}
+            >
               <Play className="h-4 w-4" />
             </Button>
           )}
@@ -221,8 +251,16 @@ export default function Turfs() {
               <div>
                 <p className="text-sm text-gray-600">Status</p>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[selectedTurf.status]}`}>
-                  {selectedTurf.status}
+                  {TURF_STATUS_LABEL[selectedTurf.status] || selectedTurf.status}
                 </span>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Owner UPI</p>
+                <p className="font-medium">
+                  {selectedTurf.owner_has_upi || selectedTurf.owner?.has_upi
+                    ? selectedTurf.owner?.upi_id || 'Ready'
+                    : 'Not added — cannot go live'}
+                </p>
               </div>
               <div className="col-span-2">
                 <p className="text-sm text-gray-600">Address</p>
@@ -232,6 +270,12 @@ export default function Turfs() {
                     .join(', ')}
                 </p>
               </div>
+              {selectedTurf.rejection_reason && (
+                <div className="col-span-2">
+                  <p className="text-sm text-gray-600">Told the owner</p>
+                  <p className="font-medium text-orange-800">{selectedTurf.rejection_reason}</p>
+                </div>
+              )}
               <div>
                 <p className="text-sm text-gray-600">Owner</p>
                 <p className="font-medium">{selectedTurf.owner?.name || 'N/A'}</p>
@@ -280,12 +324,11 @@ export default function Turfs() {
                   {selectedTurf.images.map((img, idx) => (
                     <img 
                       key={idx} 
-                      src={`http://10.10.16.254:8000/storage/${img.image_path || img}`}
+                      src={img.image_url}
                       alt={`Turf ${idx + 1}`}
                       className="h-24 w-full object-cover rounded-lg"
                       onError={(e) => {
                         e.target.style.display = 'none'
-                        e.target.nextSibling.style.display = 'flex'
                       }}
                     />
                   ))}

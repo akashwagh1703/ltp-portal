@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { AlertCircle, Clock, DollarSign, UserPlus, FileText } from 'lucide-react'
+import { AlertCircle, Clock, CreditCard, UserPlus, FileText } from 'lucide-react'
 import Button from '../ui/Button'
 import { useNavigate } from 'react-router-dom'
 
@@ -8,8 +8,10 @@ export default function PendingActionsWidget({ actions = [] }) {
 
   const getIcon = (type) => {
     const icons = {
-      payout: DollarSign,
+      payout: CreditCard,
+      fee: CreditCard,
       application: UserPlus,
+      listing: FileText,
       review: FileText,
       booking: Clock
     }

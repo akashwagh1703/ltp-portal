@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Zap, DollarSign, Bell, FileText, Users, Settings } from 'lucide-react'
+import { Zap, CreditCard, Bell, FileText, Users, Settings } from 'lucide-react'
 import Button from '../ui/Button'
 import { useNavigate } from 'react-router-dom'
 
@@ -9,11 +9,11 @@ export default function QuickActionsWidget() {
   const actions = [
     {
       id: 1,
-      title: 'Generate Payouts',
-      description: 'Create monthly payouts',
-      icon: DollarSign,
+      title: 'Confirm LTP fees',
+      description: 'Owner Pay LTP payments',
+      icon: CreditCard,
       color: 'green',
-      action: () => navigate('/payouts')
+      action: () => navigate('/subscriptions')
     },
     {
       id: 2,

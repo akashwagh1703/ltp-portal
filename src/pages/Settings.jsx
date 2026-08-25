@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react'
-import { Save, MessageSquare, Settings as SettingsIcon, CreditCard } from 'lucide-react'
+import { Save, MessageSquare, Settings as SettingsIcon, QrCode } from 'lucide-react'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import { settingService } from '../services/settingService'
 import toast from 'react-hot-toast'
 
 export default function Settings() {
-  const [activeTab, setActiveTab] = useState('commission')
+  const [activeTab, setActiveTab] = useState('upi')
   const [commissionRate, setCommissionRate] = useState('5.00')
   const [smsSettings, setSmsSettings] = useState({
     sms_enabled: false,
-    default_otp_enabled: true,
-    default_otp: '999999',
+    default_otp_enabled: false,
+    default_otp: '',
     msg91_auth_key: '',
     msg91_sender_id: 'LTPLAY',
     msg91_otp_template_id: '',
@@ -19,15 +19,11 @@ export default function Settings() {
     msg91_cancel_template_id: '',
     msg91_dlt_entity_id: ''
   })
-  const [paymentSettings, setPaymentSettings] = useState({
-    razorpay_enabled: false,
-    razorpay_mode: 'test',
-    razorpay_key_id: '',
-    razorpay_key_secret: '',
-    razorpay_webhook_secret: '',
-    razorpay_payouts_enabled: false,
-    razorpay_payout_key_id: '',
-    razorpay_payout_key_secret: ''
+  const [platformUpi, setPlatformUpi] = useState({
+    upi_id: '',
+    qr_url: '',
+    file: null,
+    preview: ''
   })
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -39,14 +35,20 @@ export default function Settings() {
   const loadSettings = async () => {
     setLoading(true)
     try {
-      const [commissionResponse, smsResponse, paymentResponse] = await Promise.all([
+      const [commissionResponse, smsResponse, upiResponse] = await Promise.all([
         settingService.getCommissionRate(),
         settingService.getSmsSettings(),
-        settingService.getPaymentSettings()
+        settingService.getPlatformUpi()
       ])
       setCommissionRate(commissionResponse.commission_rate || '5.00')
       setSmsSettings(smsResponse)
-      setPaymentSettings(paymentResponse)
+      const upi = upiResponse.data || upiResponse
+      setPlatformUpi({
+        upi_id: upi.upi_id || '',
+        qr_url: upi.qr_url || '',
+        file: null,
+        preview: ''
+      })
     } catch (error) {
       console.error('Load settings error:', error)
       toast.error('Failed to load settings')
@@ -86,14 +88,29 @@ export default function Settings() {
     }
   }
 
-  const handlePaymentSave = async () => {
+  const handlePlatformUpiSave = async () => {
+    if (!platformUpi.upi_id && !platformUpi.file) {
+      toast.error('Add a UPI ID or QR image')
+      return
+    }
+
     setSaving(true)
     try {
-      await settingService.updatePaymentSettings(paymentSettings)
-      toast.success('Payment settings updated successfully')
+      const form = new FormData()
+      if (platformUpi.upi_id) form.append('upi_id', platformUpi.upi_id)
+      if (platformUpi.file) form.append('qr', platformUpi.file)
+      const response = await settingService.updatePlatformUpi(form)
+      const saved = response.data || response
+      setPlatformUpi({
+        upi_id: saved.upi_id || platformUpi.upi_id,
+        qr_url: saved.qr_url || platformUpi.qr_url,
+        file: null,
+        preview: ''
+      })
+      toast.success(response.message || 'Platform UPI saved')
     } catch (error) {
-      console.error('Save payment settings error:', error)
-      toast.error(error.response?.data?.message || 'Failed to update payment settings')
+      console.error('Save platform UPI error:', error)
+      toast.error(error.response?.data?.message || 'Failed to save platform UPI')
     } finally {
       setSaving(false)
     }
@@ -118,10 +135,21 @@ export default function Settings() {
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex space-x-8">
           <button
+            onClick={() => setActiveTab('upi')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'upi'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <QrCode className="h-4 w-4 inline mr-2" />
+            Platform UPI
+          </button>
+          <button
             onClick={() => setActiveTab('commission')}
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'commission'
-                ? 'border-blue-500 text-blue-600'
+                ? 'border-primary text-primary'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
@@ -132,23 +160,12 @@ export default function Settings() {
             onClick={() => setActiveTab('sms')}
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'sms'
-                ? 'border-blue-500 text-blue-600'
+                ? 'border-primary text-primary'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
             <MessageSquare className="h-4 w-4 inline mr-2" />
             SMS & OTP
-          </button>
-          <button
-            onClick={() => setActiveTab('payment')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'payment'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            <CreditCard className="h-4 w-4 inline mr-2" />
-            Payments
           </button>
         </nav>
       </div>
@@ -173,17 +190,15 @@ export default function Settings() {
                 placeholder="5.00"
               />
               <p className="text-sm text-gray-500 mt-2">
-                Percentage of booking amount charged as platform commission
+                Kept for reports only. v3 does not take a cut of bookings — players pay the owner directly.
               </p>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="text-sm font-medium text-blue-900 mb-2">Example Calculation:</h3>
-              <div className="text-sm text-blue-800 space-y-1">
-                <p>Booking Amount: ₹1,000</p>
-                <p>Commission ({commissionRate}%): ₹{((1000 * parseFloat(commissionRate || 0)) / 100).toFixed(2)}</p>
-                <p>Owner Receives: ₹{(1000 - ((1000 * parseFloat(commissionRate || 0)) / 100)).toFixed(2)}</p>
-              </div>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <h3 className="text-sm font-medium text-amber-900 mb-2">v3 money model</h3>
+              <p className="text-sm text-amber-800">
+                LTP never holds booking money. Owners pay a monthly or yearly fee by scanning the platform QR (Platform UPI tab).
+              </p>
             </div>
 
             <Button
@@ -247,7 +262,7 @@ export default function Settings() {
                     maxLength="6"
                     value={smsSettings.default_otp}
                     onChange={(e) => setSmsSettings({...smsSettings, default_otp: e.target.value})}
-                    placeholder="999999"
+                    placeholder="6-digit OTP"
                     disabled={!smsSettings.default_otp_enabled}
                   />
                 </div>
@@ -353,141 +368,61 @@ export default function Settings() {
         </div>
       )}
 
-      {/* Payment Settings Tab */}
-      {activeTab === 'payment' && (
+      {activeTab === 'upi' && (
         <div className="space-y-6">
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Razorpay Configuration</h2>
-            
-            <div className="space-y-6">
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Platform UPI</h2>
+            <p className="text-sm text-gray-500 mb-6">
+              Owners scan this QR to pay Let’s Turf Play the monthly or yearly fee.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
                 <div>
-                  <h3 className="font-medium text-gray-900">Razorpay Payments</h3>
-                  <p className="text-sm text-gray-500">Enable online payments via Razorpay</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={paymentSettings.razorpay_enabled}
-                    onChange={(e) => setPaymentSettings({...paymentSettings, razorpay_enabled: e.target.checked})}
-                    className="sr-only peer"
+                  <label className="block text-sm font-medium text-gray-700 mb-2">UPI ID</label>
+                  <Input
+                    type="text"
+                    value={platformUpi.upi_id}
+                    onChange={(e) => setPlatformUpi({ ...platformUpi, upi_id: e.target.value })}
+                    placeholder="letsturfplay@upi"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <h3 className="font-medium text-gray-900">Razorpay Payouts</h3>
-                  <p className="text-sm text-gray-500">Enable automated payouts to turf owners</p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">QR image</label>
                   <input
-                    type="checkbox"
-                    checked={paymentSettings.razorpay_payouts_enabled}
-                    onChange={(e) => setPaymentSettings({...paymentSettings, razorpay_payouts_enabled: e.target.checked})}
-                    className="sr-only peer"
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+                      setPlatformUpi({
+                        ...platformUpi,
+                        file,
+                        preview: URL.createObjectURL(file)
+                      })
+                    }}
+                    className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-100 file:font-medium"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
+                </div>
+                <Button
+                  onClick={handlePlatformUpiSave}
+                  loading={saving}
+                  icon={<Save className="h-4 w-4" />}
+                >
+                  Save platform UPI
+                </Button>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Environment</label>
-                  <select
-                    value={paymentSettings.razorpay_mode}
-                    onChange={(e) => setPaymentSettings({...paymentSettings, razorpay_mode: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="test">Test Mode</option>
-                    <option value="live">Live Mode</option>
-                  </select>
-                </div>
-                
-                <div></div>
-                
-                <div className="col-span-2">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Payment Credentials</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Payment Key ID *</label>
-                      <Input
-                        type="text"
-                        value={paymentSettings.razorpay_key_id}
-                        onChange={(e) => setPaymentSettings({...paymentSettings, razorpay_key_id: e.target.value})}
-                        placeholder={paymentSettings.razorpay_mode === 'test' ? 'rzp_test_xxxxxxxxxx' : 'rzp_live_xxxxxxxxxx'}
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Payment Key Secret *</label>
-                      <Input
-                        type="password"
-                        value={paymentSettings.razorpay_key_secret}
-                        onChange={(e) => setPaymentSettings({...paymentSettings, razorpay_key_secret: e.target.value})}
-                        placeholder="Enter Payment Key Secret"
-                      />
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="col-span-2">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Payout Credentials</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Payout Key ID</label>
-                      <Input
-                        type="text"
-                        value={paymentSettings.razorpay_payout_key_id}
-                        onChange={(e) => setPaymentSettings({...paymentSettings, razorpay_payout_key_id: e.target.value})}
-                        placeholder="rzp_live_xxxxxxxxxx (Live only)"
-                        disabled={!paymentSettings.razorpay_payouts_enabled}
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Payout Key Secret</label>
-                      <Input
-                        type="password"
-                        value={paymentSettings.razorpay_payout_key_secret}
-                        onChange={(e) => setPaymentSettings({...paymentSettings, razorpay_payout_key_secret: e.target.value})}
-                        placeholder="Enter Payout Key Secret"
-                        disabled={!paymentSettings.razorpay_payouts_enabled}
-                      />
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-500 mt-2">
-                    ⚠️ Payouts only work in Live mode with KYC-verified account
-                  </p>
-                </div>
+              <div className="flex items-center justify-center rounded-xl border border-gray-200 bg-gray-50 p-4 min-h-[240px]">
+                {platformUpi.preview || platformUpi.qr_url ? (
+                  <img
+                    src={platformUpi.preview || platformUpi.qr_url}
+                    alt="LTP UPI QR"
+                    className="max-h-56 max-w-full object-contain"
+                  />
+                ) : (
+                  <p className="text-sm text-gray-500 text-center">No QR uploaded yet</p>
+                )}
               </div>
-
-              <Button
-                onClick={handlePaymentSave}
-                loading={saving}
-                icon={<Save className="h-4 w-4" />}
-              >
-                Save Payment Settings
-              </Button>
-            </div>
-          </div>
-
-          <div className={`border rounded-lg p-4 ${
-            paymentSettings.razorpay_enabled ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'
-          }`}>
-            <h3 className={`text-sm font-medium mb-2 ${
-              paymentSettings.razorpay_enabled ? 'text-green-900' : 'text-yellow-900'
-            }`}>
-              {paymentSettings.razorpay_enabled ? '✅ Razorpay Enabled' : '⚠️ Razorpay Disabled'}
-            </h3>
-            <div className={`text-sm space-y-1 ${
-              paymentSettings.razorpay_enabled ? 'text-green-800' : 'text-yellow-800'
-            }`}>
-              <p>• Mode: {paymentSettings.razorpay_mode === 'test' ? 'Test Environment' : 'Live Environment'}</p>
-              <p>• Payment Key: {paymentSettings.razorpay_key_id ? 'Configured' : 'Not Set'}</p>
-              <p>• Payouts: {paymentSettings.razorpay_payouts_enabled ? 'Enabled' : 'Disabled'}</p>
-              <p>• Payout Key: {paymentSettings.razorpay_payout_key_id ? 'Configured' : 'Not Set'}</p>
             </div>
           </div>
         </div>
@@ -495,29 +430,11 @@ export default function Settings() {
 
       {activeTab === 'commission' && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-yellow-900 mb-2">⚠️ Important Notes:</h3>
+          <h3 className="text-sm font-medium text-yellow-900 mb-2">Note</h3>
           <ul className="text-sm text-yellow-800 space-y-1 list-disc list-inside">
-            <li>Commission rate applies to all new bookings</li>
-            <li>Existing bookings retain their original commission rate</li>
-            <li>Changes take effect immediately</li>
-            <li>Recommended rate: 5-10% for marketplace platforms</li>
+            <li>v3 does not take a booking commission. This rate is display/report only.</li>
+            <li>Owner fees are confirmed on the Subscriptions page, not here.</li>
           </ul>
-        </div>
-      )}
-
-      {activeTab === 'payment' && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-blue-900 mb-2">🔧 Setup Guide:</h3>
-          <div className="space-y-3">
-            <div>
-              <h4 className="text-sm font-semibold text-blue-900">Test Mode:</h4>
-              <p className="text-sm text-blue-800">• Use rzp_test_ keys • Test card: 4111 1111 1111 1111</p>
-            </div>
-            <div>
-              <h4 className="text-sm font-semibold text-blue-900">Live Mode:</h4>
-              <p className="text-sm text-blue-800">• Complete KYC • Use rzp_live_ keys • Real payments</p>
-            </div>
-          </div>
         </div>
       )}
     </div>

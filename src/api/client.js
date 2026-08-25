@@ -1,8 +1,13 @@
 import axios from 'axios'
 import toast from 'react-hot-toast'
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+if (!API_BASE_URL) {
+  throw new Error('VITE_API_BASE_URL is required. Set it in ltp-portal/.env (see .env.example).')
+}
+
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://api.playltp.in/api/v1',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json'
   }

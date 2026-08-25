@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://143.110.183.5/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+if (!API_BASE_URL) {
+  throw new Error('VITE_API_BASE_URL is required. Set it in ltp-portal/.env (see .env.example).');
+}
 
 const api = axios.create({
   baseURL: API_BASE_URL,

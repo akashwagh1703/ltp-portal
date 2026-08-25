@@ -81,7 +81,14 @@ export const endpoints = {
     plans: '/admin/subscriptions/plans',
     updatePlan: (id) => `/admin/subscriptions/plans/${id}`,
     ownersWithout: '/admin/subscriptions/owners-without',
-    statistics: '/admin/subscriptions/statistics'
+    statistics: '/admin/subscriptions/statistics',
+    feePayments: '/admin/subscription-payments',
+    confirmFee: (id) => `/admin/subscription-payments/${id}/confirm`,
+    rejectFee: (id) => `/admin/subscription-payments/${id}/reject`
+  },
+  platformUpi: {
+    get: '/admin/settings/platform-upi',
+    update: '/admin/settings/platform-upi'
   },
   logs: {
     activity: '/admin/logs/activity'

@@ -97,7 +97,7 @@ export default function Dashboard() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={fetchDashboardData}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-action text-white rounded-lg hover:bg-[#c45c18] transition-colors"
         >
           <Zap className="h-4 w-4" />
           Refresh

@@ -45,4 +45,14 @@ export const settingService = {
     const response = await api.put('/admin/settings/payment', settings);
     return response.data;
   },
+
+  getPlatformUpi: async () => {
+    const response = await api.get('/admin/settings/platform-upi');
+    return response.data;
+  },
+
+  updatePlatformUpi: async (formData) => {
+    const response = await api.post('/admin/settings/platform-upi', formData);
+    return response.data;
+  },
 };

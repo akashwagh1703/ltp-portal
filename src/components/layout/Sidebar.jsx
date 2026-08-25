@@ -40,14 +40,8 @@ const menuItems = [
       { path: '/players', label: 'Players' }
     ]
   },
-  {
-    label: 'Booking & Payments',
-    icon: Calendar,
-    submenu: [
-      { path: '/bookings', label: 'Bookings' },
-      { path: '/payouts', label: 'Payouts' }
-    ]
-  },
+  { path: '/bookings', icon: Calendar, label: 'Bookings' },
+  { path: '/subscriptions', icon: CreditCard, label: 'Subscriptions' },
   {
     label: 'Marketing',
     icon: Tag,
@@ -57,7 +51,6 @@ const menuItems = [
       { path: '/notifications', label: 'Send Notifications' }
     ]
   },
-  { path: '/subscriptions', icon: CreditCard, label: 'Subscriptions' },
   { path: '/reports', icon: BarChart3, label: 'Reports' },
   { path: '/cms', icon: FileText, label: 'CMS' },
   { path: '/logs', icon: ScrollText, label: 'Logs' }

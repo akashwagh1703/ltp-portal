@@ -7,7 +7,6 @@ import Turfs from './pages/Turfs'
 import AddTurf from './pages/AddTurf'
 import Owners from './pages/Owners'
 import Bookings from './pages/Bookings'
-import Payouts from './pages/Payouts'
 import TurfUpdateRequests from './pages/TurfUpdateRequests'
 import TurfImages from './pages/TurfImages'
 import Reports from './pages/Reports'
@@ -48,7 +47,7 @@ export const routes = [
       { path: 'owner-applications', element: <OwnerApplications /> },
       { path: 'players', element: <Players /> },
       { path: 'bookings', element: <Bookings /> },
-      { path: 'payouts', element: <Payouts /> },
+      { path: 'payouts', element: <Navigate to="/subscriptions" replace /> },
       { path: 'coupons', element: <Coupons /> },
       { path: 'reviews', element: <Reviews /> },
       { path: 'send-notification', element: <SendNotification /> },
