@@ -10,7 +10,7 @@ export default function Settings() {
   const [commissionRate, setCommissionRate] = useState('5.00')
   const [smsSettings, setSmsSettings] = useState({
     sms_enabled: false,
-    default_otp_enabled: false,
+    default_otp_enabled: true,
     default_otp: '',
     msg91_auth_key: '',
     msg91_sender_id: 'LTPLAY',
