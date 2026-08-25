@@ -67,7 +67,7 @@ export const useCreateTurf = () => {
     mutationFn: apiService.turfs.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['turfs'] })
-      toast.success('Turf created successfully')
+      toast.success('Turf submitted. Approve it before it can take bookings.')
     }
   })
 }

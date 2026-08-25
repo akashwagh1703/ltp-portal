@@ -25,9 +25,7 @@ export const turfsAPI = {
   reject: (id) => client.post(endpoints.turfs.reject(id)),
   suspend: (id) => client.post(endpoints.turfs.suspend(id)),
   activate: (id) => client.post(endpoints.turfs.activate(id)),
-  uploadImages: (id, formData) => client.post(endpoints.turfs.uploadImages(id), formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  })
+  uploadImages: (id, formData) => client.post(endpoints.turfs.uploadImages(id), formData)
 }
 
 // Turf Images API calls

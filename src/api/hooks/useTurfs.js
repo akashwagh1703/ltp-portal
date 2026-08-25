@@ -22,7 +22,7 @@ export const useApproveTurf = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['turfs'])
-      toast.success('Turf approved successfully')
+      toast.success('Turf approved. It can now take bookings.')
     },
     onError: (error) => {
       toast.error(error.response?.data?.error?.message || error.response?.data?.message || 'Cannot approve turf')

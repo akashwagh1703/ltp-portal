@@ -219,7 +219,7 @@ export default function AddTurf() {
         toast.success('Turf updated successfully')
       } else {
         await turfService.create(formDataToSend)
-        toast.success('Turf added successfully')
+        toast.success('Turf submitted. Approve it on the Turfs page before it can take bookings.')
       }
       navigate('/turfs')
     } catch (error) {

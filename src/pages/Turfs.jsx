@@ -13,7 +13,15 @@ import toast from 'react-hot-toast'
 
 export default function Turfs() {
   const navigate = useNavigate()
-  const { data: turfs = [], isLoading } = useTurfs()
+  const { data: turfsPayload = [], isLoading } = useTurfs()
+  const turfs = (Array.isArray(turfsPayload) ? turfsPayload : turfsPayload?.data || [])
+    .slice()
+    .sort((a, b) => {
+      if (a.status === 'pending' && b.status !== 'pending') return -1
+      if (b.status === 'pending' && a.status !== 'pending') return 1
+      return 0
+    })
+  const pendingCount = turfs.filter((row) => row.status === 'pending').length
   const [selectedTurf, setSelectedTurf] = useState(null)
   const [actionDialog, setActionDialog] = useState({ isOpen: false, type: null, turf: null })
   
@@ -201,13 +209,19 @@ export default function Turfs() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Turf Management</h1>
-          <p className="text-gray-600 mt-1">Manage all turfs and their status</p>
+          <p className="text-gray-600 mt-1">Submitted turfs wait here until you approve them. Bookings open only after approval.</p>
         </div>
         <Button onClick={() => navigate('/turfs/add')}>
           <Plus className="h-4 w-4 mr-2" />
           Add Turf
         </Button>
       </div>
+
+      {pendingCount > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900">
+          {pendingCount} turf{pendingCount === 1 ? '' : 's'} waiting for approval. Approve to make bookings live.
+        </div>
+      )}
 
       <DataTable columns={columns} data={turfs} loading={isLoading} />
 
@@ -216,7 +230,11 @@ export default function Turfs() {
         onClose={() => setActionDialog({ isOpen: false, type: null, turf: null })}
         onConfirm={confirmAction}
         title={`${actionDialog.type?.charAt(0).toUpperCase() + actionDialog.type?.slice(1)} Turf`}
-        message={`Are you sure you want to ${actionDialog.type} this turf?`}
+        message={
+          actionDialog.type === 'approve'
+            ? 'Approve this turf? Players and the owner can take bookings only after this.'
+            : `Are you sure you want to ${actionDialog.type} this turf?`
+        }
         variant={actionDialog.type === 'approve' || actionDialog.type === 'activate' ? 'success' : 'danger'}
       />
 

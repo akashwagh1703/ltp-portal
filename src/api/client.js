@@ -6,10 +6,20 @@ if (!API_BASE_URL) {
   throw new Error('VITE_API_BASE_URL is required. Set it in ltp-portal/.env (see .env.example).')
 }
 
+function unsetContentType(headers) {
+  if (!headers) return
+  if (typeof headers.delete === 'function') {
+    headers.delete('Content-Type')
+    headers.delete('content-type')
+    return
+  }
+  delete headers['Content-Type']
+  delete headers['content-type']
+}
+
 const client = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
     Accept: 'application/json',
   }
 })
@@ -19,6 +29,9 @@ client.interceptors.request.use(
     const token = localStorage.getItem('admin_token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
+    }
+    if (config.data instanceof FormData) {
+      unsetContentType(config.headers)
     }
     return config
   },

@@ -5,10 +5,20 @@ if (!API_BASE_URL) {
   throw new Error('VITE_API_BASE_URL is required. Set it in ltp-portal/.env (see .env.example).');
 }
 
+function unsetContentType(headers) {
+  if (!headers) return;
+  if (typeof headers.delete === 'function') {
+    headers.delete('Content-Type');
+    headers.delete('content-type');
+    return;
+  }
+  delete headers['Content-Type'];
+  delete headers['content-type'];
+}
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
     Accept: 'application/json',
   },
 });
@@ -18,47 +28,23 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  
-  // Remove Content-Type for FormData to let browser set it with boundary
   if (config.data instanceof FormData) {
-    delete config.headers['Content-Type'];
+    unsetContentType(config.headers);
   }
-  
   return config;
 });
 
-// Request interceptor for logging
-api.interceptors.request.use(
-  (config) => {
-    console.log('🚀 API Request:', config.method?.toUpperCase(), config.url, config.data);
-    return config;
-  },
-  (error) => {
-    console.error('❌ Request Error:', error);
-    return Promise.reject(error);
-  }
-);
-
-// Response interceptor for logging and error handling
 api.interceptors.response.use(
-  (response) => {
-    console.log('✅ API Response:', response.config.url, response.data);
-    return response;
-  },
+  (response) => response,
   (error) => {
-    console.error('❌ API Error:', error.response?.data || error.message);
-    
     if (error.response?.status === 401) {
       localStorage.removeItem('admin_token');
       localStorage.removeItem('admin_user');
       window.location.href = '/login';
     }
-    
-    // Enhance error message
     if (error.response?.data?.message) {
       error.message = error.response.data.message;
     }
-    
     return Promise.reject(error);
   }
 );

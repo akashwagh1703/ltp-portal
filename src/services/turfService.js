@@ -12,16 +12,12 @@ export const turfService = {
   },
 
   create: async (data) => {
-    const response = await api.post('/admin/turfs', data, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
+    const response = await api.post('/admin/turfs', data);
     return response.data;
   },
 
   update: async (id, data) => {
-    const response = await api.post(`/admin/turfs/${id}`, data, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
+    const response = await api.post(`/admin/turfs/${id}`, data);
     return response.data;
   },
 

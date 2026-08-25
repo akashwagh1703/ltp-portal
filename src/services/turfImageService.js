@@ -2,11 +2,7 @@ import api from './api';
 
 export const turfImageService = {
   upload: async (turfId, formData) => {
-    const response = await api.post(`/admin/turfs/${turfId}/images`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await api.post(`/admin/turfs/${turfId}/images`, formData);
     return response.data;
   },
 
